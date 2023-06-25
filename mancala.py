@@ -1,80 +1,123 @@
-import numpy as np
+#Define the mancala board
+board = [4,4,4,4,4,4,0,4,4,4,4,4,4,0]
 
-board = np.array([[0, 4, 4, 4, 4, 4, 4, 0],[0, 4, 4, 4, 4, 4, 4, 0]])
+#Define player's turn
+player = 0 #0 indicates player 1 and 1 indicates player 2
+player_bank = [6, 13] 
+opponent_bank = [13,6]
 
-# choose point to play from 
-
-row = 0 
-
-def swap_player(row): 
-    if row == 1: 
-        row = 0
+# Find slot opposite the current one on the board
+def getOpposite(player, current_slot): 
+    if player == 0 and current_slot < 6: 
+        opposite_cell = 6 + (6 - current_slot)
+    elif player == 1 and current_slot > 6: 
+        opposite_cell = 6 - (current_slot - 6)
     else: 
-        row = 1
-    return row
+        opposite_cell = None
+    return opposite_cell
 
-def something(row, board):
-    print("Which place would you like to move from?") 
-    start = int(input()) # choose place
-    player = row
-    print("What player is it now?", player)
-    moves = board[row][start] + 1   # scale from index
-    board[row][start] = 0
-    # print("moves:", moves)
-    for i in range(1,moves): # move pieces from spot
-        # print("i:", i)
+# Print the board in traditional layout
+def printBoard(board): 
+    player_one = "|   |"
+    for slot in range(7): 
+        player_one += " " + str(board[slot]) + " |"
 
-        place = start + i 
-        # print("place:", place)
+    player_two = " "  
+    for slot in reversed(range(7,14)): 
+        player_two += " " + str(board[slot]) + " |"
 
-        if place > 7 and row == 0: 
-            board[1][place-6] += 1 # switch to other side
+    graphic_board = player_two + "\n" + player_one
+    print(graphic_board)
 
-        if place > 7 and row == 1: 
-            board[0][place-6] += 1
+# Check if anyone has one 
+def checkWinner(board): 
+    if sum(board[0:6]) == 0 or sum(board[7:13]) == 0:
+        print("Game over!")
+        for slot in range(0,6): 
+            board[6] += board[slot]
+            board[slot] = 0
+        for slot in range(7,13): 
+            board[13] += board[slot]
+            board[slot] = 0
+        if board[6] > board[13]: 
+            print("Player 1 Wins!")
+            return True
+        elif board[6] < board[13]: 
+            print("Player 2 Wins!")
+            return True
+        else: 
+            print("Player 1 and Player 2 Draw!")
+            return True
+    else:
+        return False
 
-        elif place <= 7: 
-            # print(row, place)
-            board[row][place] += 1
 
-    else: 
-        print(board)
-        print("player", player)
+#Define gameplay function
+def play_mancala(board, player):
+    
+    while checkWinner(board) == False: 
+
+        #Display current board
+        print("Current Mancala Board")
+        printBoard(board)
+
+        try: 
+            #Ask current player to select a slot 
+            current_slot = int(input("Player "+str(player+1)+": Select a slot to sow from (1-6): "))
+            current_slot -= 1 #adjusting for list index (1-6 --> 0-5)
+
+            # If player 2, position if 7 further in list
+            if player == 1: 
+                current_slot = current_slot + 7
+
+            #Check slot selection
+            if board[current_slot] == 0:
+                print("Error: There are no stones in this slot.")
+                return play_mancala(board, player)
+            else: 
+                #sow stones
+                stones_in_hand = board[current_slot]
+                board[current_slot] = 0
+
+            # sow stones
+            for stone in range(1, stones_in_hand+1):
+                # dont add to opponent bank 
+                if current_slot + stone == opponent_bank[player]: 
+                    current_slot += 1
+                # check if past end of the list
+                if current_slot + stone > 13:
+                    if (current_slot+stone)-14 == opponent_bank[player]: 
+                        current_slot += 1
+                    board[(current_slot+stone)-14] += 1
+                    last_slot = (current_slot+stone)-13
+                # lay stones
+                else: 
+                    board[current_slot + stone] += 1
+                    last_slot = current_slot + stone
+
+            # get cell opposite where last stone was places
+            opposite_cell = getOpposite(player, last_slot)
+
+            # check if player gets another go
+            if last_slot == player_bank[player]:
+                play_mancala(board, player)
+
+            # check if player can capture
+            elif board[last_slot] == 1 and opposite_cell != None and board[opposite_cell] > 0: 
+                board[player_bank[player]] += board[opposite_cell] + 1
+                board[opposite_cell] = 0 
+                board[last_slot] = 0 
+            
+            # Swap players
+            play_mancala(board, not player)
+
+        # Handle incorrect / accidental inputs
+        except ValueError: 
+            print("******** Choose a value from 1-6 ********")
+            play_mancala(board, player)
+
+play_mancala(board, player)
+
+
         
-        row = swap_player(player)
-        print("row", row)
-        
-    return board, player
-
-while np.sum(board) != 0:
-    something(row, board)
-
-# while np.sum(board) != 0: 
-
-#     print("Which place would you like to move from?")
-#     x = int(input())
-
-#     move = board[y][x]+1
-#     board[row][x] = 0
-#     place = x + 1
-
-#     for i in range(move): 
-#         #print(i)
-#         place = x + i + 1 # this is the problem
-#         #print(place)
-#         if place > 7 and y == 0: 
-#             y = 1
-#             x = 0
-#             p
-#             board[y][1] += 1 
-#             #print("Switch to 1", board)
-#         elif place > 7 and y == 1: 
-#             y = 0
-#             x = 0
-#             board[y][1] += 1 
-#             #print("Switch to 0", board)
-#         else: 
-#             board[y][place] += 1
-#     else:
-
-#         print(board)
+    
