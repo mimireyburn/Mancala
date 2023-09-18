@@ -22,4 +22,8 @@ The game ends when a player has no more stones on their side of the board. The p
 
 ## Steps
 - [x] Implement Mancala game and full rules
-- [ ] Implement RL algorithm
+- [x] Play locally against a random agent
+- [ ] Implement a simple RL algorithm
+- [ ] Play against the RL agent
+- [ ] Implement complex RL algorithm
+- [ ] Play against the RL agent
