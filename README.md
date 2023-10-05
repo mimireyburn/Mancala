@@ -19,11 +19,13 @@ If the last stone is dropped in the player's store, they can play again. If the 
 
 The game ends when a player has no more stones on their side of the board. The player with the most stones in their store wins.
 
+## To-Do
+- [ ] Debug Agent recursively choosing empty slot 0
 
 ## Steps
 - [x] Implement Mancala game and full rules
 - [x] Play locally against a random agent
-- [ ] Implement a simple RL algorithm
-- [ ] Play against the RL agent
+- [x] Implement a simple RL algorithm
+- [x] Play against the RL agent
 - [ ] Implement complex RL algorithm
 - [ ] Play against the RL agent
