@@ -27,7 +27,6 @@ class MancalaEnv(gym.Env):
         if (player == 0 and current_slot < 6) or (player == 1 and current_slot > 6):
             opponent_cell = 12 - current_slot
             # capture stones, if avaliable
-            # print("Opponent cell", opponent_cell)
             if board[opponent_cell] != 0:
                 info['extra_info']['captured_stones'] = board[opponent_cell]
                 board[self.player_bank[player]] += board[opponent_cell]
@@ -85,7 +84,7 @@ class MancalaEnv(gym.Env):
         if action < 0 or action > 5: 
             self.info['event'] = 'invalid_action'
             # return next_state, reward, done, info
-            return self.current_state, 0, False, self.info
+            return self.current_state, -1, False, self.info
 
         # Check if game is over 
         done, self.current_state[0] = self.checkWinner(self.current_state[0])
@@ -101,13 +100,12 @@ class MancalaEnv(gym.Env):
         # Shift action for player 2
         if self.current_state[1] == 1: 
             current_slot = action + 7
-            # print("current slot", current_slot)
 
         # Check there are stones in that slot on the board
         if self.current_state[0][current_slot] == 0: 
             self.info['event'] = 'empty_slot'
             # return next_state, reward, done, info
-            return self.current_state, 0, False, self.info
+            return self.current_state, -10, False, self.info
 
         stones_in_hand = self.current_state[0][current_slot]
         # empty action slot 
@@ -119,13 +117,11 @@ class MancalaEnv(gym.Env):
         # Distribute stones
         for stone in range(stones_in_hand):
             # Check if opponent bank 
-            # print("Current slot", current_slot, "Player", self.current_state[1])
             if current_slot == self.opponent_bank[self.current_state[1]]: 
                 current_slot += 1
 
             current_slot = current_slot % 14
             self.current_state[0][current_slot] += 1
-            # print("Allocating stones", self.current_state[0])
             
             current_slot += 1   
 
@@ -134,7 +130,6 @@ class MancalaEnv(gym.Env):
         # Check if ended on player's own bank
         if current_slot == self.player_bank[self.current_state[1]]: 
             # Player gets another turn
-            # print("check extra turn: current slot", current_slot, "player", self.current_state[1])
             self.info['event'] = 'extra_turn'
             # return next_state, reward, done, info
             return self.current_state, self.calculateReward(self.current_state[0], self.current_state[1]), False, self.info
@@ -155,6 +150,10 @@ class MancalaEnv(gym.Env):
     def reset(self): 
         # Reset the state of the environment to an initial state and return that state 
         # Reset player turn too 
+        self.info = {
+            'event': None,
+            'extra_info': {}
+        }
         self.current_state = [[4,4,4,4,4,4,0,4,4,4,4,4,4,0], random.randint(0,1)]
         return self.current_state
 
