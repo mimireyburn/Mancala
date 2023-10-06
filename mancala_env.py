@@ -22,7 +22,18 @@ class MancalaEnv(gym.Env):
 
         self.current_state = None
         self.reset()
+
+
+    def get_valid_actions(self, board, player):
+        start_slot = self.opponent_bank[player] + 1
+        valid_actions = []
+        for slot in range(6):
+            board_slot = (slot + start_slot) % 14
+            if board[board_slot] != 0:
+                valid_actions.append(slot)
+        return valid_actions
     
+
     def opposite(self, board, player, current_slot, info):
         if (player == 0 and current_slot < 6) or (player == 1 and current_slot > 6):
             opponent_cell = 12 - current_slot
@@ -32,6 +43,7 @@ class MancalaEnv(gym.Env):
                 board[self.player_bank[player]] += board[opponent_cell]
                 board[opponent_cell] = 0
         return board, info
+
 
     def checkWinner(self, board): 
         if sum(board[0:5]) == 0 or sum(board[7:12]) == 0:
@@ -53,9 +65,9 @@ class MancalaEnv(gym.Env):
 
     def calculateReward(self, board, player):
         if player == 0:
-            return board[6] - board[13]
+            return (board[6] - board[13])*10000
         else:
-            return board[13] - board[6] 
+            return (board[13] - board[6])*10000
 
 
     def printBoard(self, board): 
@@ -105,7 +117,7 @@ class MancalaEnv(gym.Env):
         if self.current_state[0][current_slot] == 0: 
             self.info['event'] = 'empty_slot'
             # return next_state, reward, done, info
-            return self.current_state, -10, False, self.info
+            return self.current_state, -1e5, False, self.info
 
         stones_in_hand = self.current_state[0][current_slot]
         # empty action slot 
@@ -142,7 +154,7 @@ class MancalaEnv(gym.Env):
         
         # Switch player
         self.current_state[1] = (self.current_state[1] + 1) % 2
-
+        self.info['event'] = 'switch_player'
         # return next_state, reward, done, info
         return self.current_state, self.calculateReward(self.current_state[0], self.current_state[1]), False, self.info
 
