@@ -19,6 +19,7 @@ The game ends when a player has no more stones on their side of the board. The p
 
 ## To-Do
 - [ ] Debug Agent recursively choosing empty slot 0
+- [ ] Make experiments deterministic
 
 ## Steps
 - [x] Implement Mancala game and full rules
