@@ -12,10 +12,16 @@ def q_learning(env, n_episodes=100000, gamma=0.9, alpha=0.1, epsilon=0.1):
 
     # Epsilon-greedy action selection
     def epsilon_greedy(state, epsilon):
+        valid_actions = env.get_valid_actions(board=state[0], player=state[1])
+        # print("player", state[1], "valid actions:", valid_actions)
+        # print("board state:", state[0])
+        if len(valid_actions) == 0:
+            done = True
+            return done
         if random.random() < epsilon:
-            return random.randint(0, 5)
+            return random.choice(valid_actions)
         else:
-            return max(list(range(6)), key=lambda x: Q_table[str(state)][x])
+            return max(valid_actions, key=lambda x: Q_table[str(state)][x])
 
     # Main Q-learning loop
     for episode in range(n_episodes):
@@ -23,9 +29,9 @@ def q_learning(env, n_episodes=100000, gamma=0.9, alpha=0.1, epsilon=0.1):
         done = False
         print("Episode", episode)
         while not done:
-            action = epsilon_greedy(state[0], epsilon)  # Assuming state[0] is the board
+            action = epsilon_greedy(state, epsilon)  # Assuming state[0] is the board
             next_state, reward, done, _ = env.step(action)
-
+            
             # Q-value update
             old_value = Q_table[str(state[0])][action]
             next_max = max(Q_table[str(next_state[0])])
@@ -67,5 +73,5 @@ if __name__ == "__main__":
     env = MancalaEnv()
     Q_table = q_learning(env)
     save_table(Q_table)
-    loaded_Q_table = load_table()
-    play(loaded_Q_table)
+    # loaded_Q_table = load_table()
+    # play(loaded_Q_table)
