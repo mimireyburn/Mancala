@@ -1,9 +1,7 @@
-# Mancala
-*A personal project to learn and understand RL methods* 
+# Mancala Bot
+*A personal project to learn RL methods and how to win at Mancala*
 
-Teaching a model to play Mancala using Reinforcement Learning.
-
-## Mancala
+I recently watched the AlphaGo film. While Go is a very complex game, Mancala is very simple and by teaching a model to win, I think it's likely that I could use emergent patterns and behaviours to learn how to win at Mancala myself. I also wanted to understand how to implement RL algorithms and this seemed like a good way to do it.
 
 ### Board
 The board is composed of 12 holes and 2 stores. Each player has 6 holes and 1 store. The holes are filled with a number of stones. The stores are empty at the beginning of the game. We represent the board as follows:
