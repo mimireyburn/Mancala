@@ -46,7 +46,7 @@ class MancalaEnv(gym.Env):
 
 
     def checkWinner(self, board): 
-        if sum(board[0:5]) == 0 or sum(board[7:12]) == 0:
+        if sum(board[0:6]) == 0 or sum(board[7:13]) == 0:
             for slot in range(0,6): 
                 board[6] += board[slot]
                 board[slot] = 0
@@ -54,33 +54,44 @@ class MancalaEnv(gym.Env):
                 board[13] += board[slot]
                 board[slot] = 0
             if board[6] > board[13]: 
-                return True, board
+                return True, board, 0
             elif board[6] < board[13]: 
-                return True, board 
+                return True, board, 1 
             else: 
-                return True, board 
+                return True, board, 2
         else:
-            return False, board
+            return False, board, None
 
 
     def calculateReward(self, board, player):
         if player == 0:
-            return (board[6] - board[13])*10000
+            reward = (board[6] - board[13])*1000
+            reward += sum(board[0:6])
+            print("Reward", reward)
+            return reward
         else:
-            return (board[13] - board[6])*10000
+            reward = (board[13] - board[6])*1000
+            reward += sum(board[7:13])
+            print("Reward", reward)
+            return reward
 
 
-    def printBoard(self, board): 
-        player_one = "|   |"
-        for slot in range(7): 
-            player_one += " " + str(board[slot]) + " |"
-
-        player_two = " "  
-        for slot in reversed(range(7,14)): 
-            player_two += " " + str(board[slot]) + " |"
-
-        graphic_board = player_two + "\n" + player_one
-        print(graphic_board)
+    def printBoard(self, board):
+        # Calculate max length for formatting
+        max_length = max(len(str(x)) for x in board)
+        
+        top_row = board[:6][::-1]  # Reversed
+        bottom_row = board[7:13]
+        
+        # Format the top row
+        top_str = " ".join(str(x).rjust(max_length) for x in top_row)
+        
+        # Format the bottom row
+        bottom_str = " ".join(str(x).rjust(max_length) for x in bottom_row)
+        
+        print(f"{' ' * (max_length + 2)}{top_str}")
+        print(f"{str(board[6]).rjust(max_length)}{' ' * (len(top_str) + 4)}{board[13]}")
+        print(f"{' ' * (max_length + 2)}{bottom_str}")
 
 
     def step(self, action):
@@ -96,10 +107,10 @@ class MancalaEnv(gym.Env):
         if action < 0 or action > 5: 
             self.info['event'] = 'invalid_action'
             # return next_state, reward, done, info
-            return self.current_state, -1, False, self.info
+            return self.current_state, -1e5, False, self.info
 
         # Check if game is over 
-        done, self.current_state[0] = self.checkWinner(self.current_state[0])
+        done, self.current_state[0], winner = self.checkWinner(self.current_state[0])
         if done: 
             self.info['event'] = 'game_over'
             self.info['extra_info']['winner'] = self.checkWinner(self.current_state[0])
@@ -143,6 +154,14 @@ class MancalaEnv(gym.Env):
         if current_slot == self.player_bank[self.current_state[1]]: 
             # Player gets another turn
             self.info['event'] = 'extra_turn'
+
+            # Check if game is over 
+            done, self.current_state[0], winner = self.checkWinner(self.current_state[0])
+            if done: 
+                self.info['event'] = 'game_over'
+                self.info['extra_info']['winner'] = self.checkWinner(self.current_state[0])
+                # return next_state, reward, done, info
+                return self.current_state, self.calculateReward(self.current_state[0], self.current_state[1]), True, self.info
             # return next_state, reward, done, info
             return self.current_state, self.calculateReward(self.current_state[0], self.current_state[1]), False, self.info
 
@@ -152,6 +171,16 @@ class MancalaEnv(gym.Env):
             # Capture if possible
             self.current_state[0], self.info = self.opposite(self.current_state[0], self.current_state[1], current_slot, self.info) 
         
+
+        # Check if game is over
+        done, self.current_state[0], winner = self.checkWinner(self.current_state[0])
+        if done: 
+            self.info['event'] = 'game_over'
+            self.info['extra_info']['winner'] = self.checkWinner(self.current_state[0])
+            # return next_state, reward, done, info
+            return self.current_state, self.calculateReward(self.current_state[0], self.current_state[1]), True, self.info
+
+
         # Switch player
         self.current_state[1] = (self.current_state[1] + 1) % 2
         self.info['event'] = 'switch_player'
